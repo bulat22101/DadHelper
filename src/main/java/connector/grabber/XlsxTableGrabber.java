@@ -3,6 +3,7 @@ package connector.grabber;
 import entity.ColumnsConfig;
 import entity.MaterialRecord;
 import entity.TableConfig;
+import exception.DadHelperException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
@@ -10,19 +11,27 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class XlsxTableGrabber implements TableGrabber {
     @Override
-    public List<MaterialRecord> getMaterialRecords(TableConfig tableConfig) {
+    public List<MaterialRecord> getMaterialRecords(TableConfig tableConfig) throws DadHelperException {
         List<MaterialRecord> materialRecords = new ArrayList<>();
         try (
                 FileInputStream fileInputStream = new FileInputStream(tableConfig.getTablePath().toFile());
                 XSSFWorkbook excelBook = new XSSFWorkbook(fileInputStream)
         ) {
             XSSFSheet sheet = excelBook.getSheet(tableConfig.getSheetName());
+            if (sheet == null) {
+                throw new DadHelperException(String.format(
+                        "Sheet %s not found at file %s",
+                        tableConfig.getSheetName(),
+                        tableConfig.getTablePath().toAbsolutePath().toString()
+                ));
+            }
             ColumnsConfig columnsConfig = tableConfig.getColumnsConfig();
             int nameColumnNumber = columnsConfig.getNameColumnNumber();
             int amountColumnNumber = columnsConfig.getAmountColumnNumber();
@@ -40,9 +49,8 @@ public class XlsxTableGrabber implements TableGrabber {
                     materialRecords.add(new MaterialRecord(fixedName, name, amount, measure, tableConfig, row.getRowNum()));
                 });
             });
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new DadHelperException("Error while reading file " + tableConfig.getTablePath().toAbsolutePath());
         }
         return materialRecords;
     }

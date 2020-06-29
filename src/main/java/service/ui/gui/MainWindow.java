@@ -2,6 +2,7 @@ package service.ui.gui;
 
 import entity.SearchTask;
 import entity.TableConfig;
+import exception.DadHelperException;
 import service.search.SearchProcessor;
 
 import javax.swing.*;
@@ -13,9 +14,9 @@ public class MainWindow extends JFrame implements TableRequester {
     private static final String TOTAL_TABLE = "TOTAL_TABLE";
     private static final String WORK_TABLE = "WORK_TABLE";
     private final SearchProcessor searchProcessor;
-    private MainWindowPanel panel;
+    private final MainWindowPanel panel;
     private TableConfig totalTableConfig;
-    private List<TableConfig> workTables;
+    private final List<TableConfig> workTables;
 
     public MainWindow(SearchProcessor searchProcessor) {
         this.searchProcessor = searchProcessor;
@@ -74,10 +75,11 @@ public class MainWindow extends JFrame implements TableRequester {
         String reportFileName;
         try {
             reportFileName = searchProcessor.proceedSearching(searchTask);
-        }catch (Exception e){
-            JOptionPane.showMessageDialog(this, e.getMessage());
-            return;
+            JOptionPane.showMessageDialog(this, reportFileName, "Поиск завершен", JOptionPane.INFORMATION_MESSAGE);
+        } catch (DadHelperException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage(), "Не удалось завершить поиск", JOptionPane.WARNING_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, e.getStackTrace());
         }
-        JOptionPane.showMessageDialog(this, reportFileName, "Поиск завершен", JOptionPane.INFORMATION_MESSAGE);
     }
 }

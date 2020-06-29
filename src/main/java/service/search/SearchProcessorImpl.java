@@ -2,6 +2,7 @@ package service.search;
 
 import connector.writer.ReportWriter;
 import entity.*;
+import exception.DadHelperException;
 import service.TableGrabberResolver;
 
 import java.util.*;
@@ -17,15 +18,15 @@ public class SearchProcessorImpl implements SearchProcessor {
     }
 
     @Override
-    public String proceedSearching(SearchTask searchTask) {
+    public String proceedSearching(SearchTask searchTask) throws DadHelperException {
         List<MaterialRecord> totalMaterialRecords = getMaterialRecords(searchTask.getTotalTableConfig());
-        List<MaterialRecord> workMaterialRecords = searchTask.getWorkTablesConfigs().stream()
-                .map(this::getMaterialRecords)
-                .flatMap(List::stream)
-                .collect(Collectors.toList());
+        List<MaterialRecord> workMaterialRecords = new ArrayList<>();
+        for (TableConfig tableConfig : searchTask.getWorkTablesConfigs()) {
+            List<MaterialRecord> materialRecords = getMaterialRecords(tableConfig);
+            workMaterialRecords.addAll(materialRecords);
+        }
         Report report = generateReport(totalMaterialRecords, workMaterialRecords);
-        String reportFileName = reportWriter.createAndSaveReport(report);
-        return reportFileName;
+        return reportWriter.createAndSaveReport(report);
     }
 
     private Report generateReport(
@@ -95,7 +96,7 @@ public class SearchProcessorImpl implements SearchProcessor {
                 ));
     }
 
-    private List<MaterialRecord> getMaterialRecords(TableConfig tableConfig) {
+    private List<MaterialRecord> getMaterialRecords(TableConfig tableConfig) throws DadHelperException {
         return tableGrabberResolver.getTableGrabber(tableConfig.getTableType())
                 .getMaterialRecords(tableConfig);
     }
