@@ -3,9 +3,11 @@ package connector.grabber;
 import entity.ColumnsConfig;
 import entity.MaterialRecord;
 import entity.TableConfig;
+import exception.DadHelperException;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -13,11 +15,11 @@ import java.util.Optional;
 public class CsvTableGrabber implements TableGrabber {
 
     @Override
-    public List<MaterialRecord> getMaterialRecords(TableConfig tableConfig) {
+    public List<MaterialRecord> getMaterialRecords(TableConfig tableConfig) throws DadHelperException {
         List<MaterialRecord> materialRecords = new ArrayList<>();
         try (
                 FileReader fileReader = new FileReader(tableConfig.getTablePath().toFile());
-                BufferedReader bufferedReader = new BufferedReader(fileReader);
+                BufferedReader bufferedReader = new BufferedReader(fileReader)
         ) {
             String row;
             int rowNumber = 0;
@@ -45,8 +47,8 @@ public class CsvTableGrabber implements TableGrabber {
                 }
                 rowNumber++;
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new DadHelperException("Error while reading file " + tableConfig.getTablePath().toAbsolutePath());
         }
         return materialRecords;
     }

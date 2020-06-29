@@ -5,10 +5,10 @@ import entity.ColumnsConfig;
 import entity.SearchTask;
 import entity.TableConfig;
 import entity.TableType;
+import exception.DadHelperException;
 import service.search.SearchProcessor;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -26,8 +26,14 @@ public class ConsoleUserInterface implements UserInterface {
     public void launch() {
         do {
             SearchTask searchTask = getSearchTask();
-            String reportFileName = searchProcessor.proceedSearching(searchTask);
-            consoleUserConnector.showMessage("Your report in file: " + reportFileName);
+            try {
+                String reportFileName = searchProcessor.proceedSearching(searchTask);
+                consoleUserConnector.showMessage("Your report in file: " + reportFileName);
+            } catch (DadHelperException e) {
+                consoleUserConnector.showMessage("Error");
+                consoleUserConnector.showMessage(e.getMessage());
+            }
+
         } while (checkContinue());
     }
 
