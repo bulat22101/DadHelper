@@ -43,7 +43,9 @@ public class SearchProcessorImpl implements SearchProcessor {
                 Comparator.comparing(AmountCheckReportRecord::getFixedName)
                         .thenComparing(AmountCheckReportRecord::getMeasure)
         );
-        return new Report(amountCheckReportRecords, totalMaterialRecords, workMaterialRecords);
+        List<SimpleAmountCheckReportRecord> simpleAmountCheckReportRecords =
+                getSimpleAmountCheckReportRecords(totalMaterialRecords, workMaterialRecords);
+        return new Report(amountCheckReportRecords, totalMaterialRecords, workMaterialRecords, simpleAmountCheckReportRecords);
     }
 
     private List<AmountCheckReportRecord> generateAmountCheckReportRecords(
@@ -101,4 +103,30 @@ public class SearchProcessorImpl implements SearchProcessor {
                 .getMaterialRecords(tableConfig);
     }
 
+    private List<SimpleAmountCheckReportRecord> getSimpleAmountCheckReportRecords(
+            List<MaterialRecord> totalMaterialRecords,
+            List<MaterialRecord> workMaterialRecords
+    ) {
+        Map<String, List<MaterialRecord>> workMaterialRecordsByFixedName = workMaterialRecords.stream()
+                .collect(Collectors.groupingBy(MaterialRecord::getFixedName, Collectors.toList()));
+        return totalMaterialRecords.stream()
+                .sorted(Comparator.comparing(MaterialRecord::getRowNumber))
+                .map(totalMaterialRecord -> {
+                    int totalReportRowNumber = totalMaterialRecord.getRowNumber();
+                    String name = totalMaterialRecord.getName();
+                    double totalReportAmount = totalMaterialRecord.getAmount();
+                    double workReportAmount = workMaterialRecordsByFixedName
+                            .getOrDefault(totalMaterialRecord.getFixedName(), Collections.emptyList())
+                            .stream()
+                            .mapToDouble(MaterialRecord::getAmount)
+                            .sum();
+                    return new SimpleAmountCheckReportRecord(
+                            totalReportRowNumber,
+                            name,
+                            totalReportAmount,
+                            workReportAmount
+                    );
+                })
+                .collect(Collectors.toList());
+    }
 }

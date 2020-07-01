@@ -3,11 +3,11 @@ package connector.writer;
 import entity.AmountCheckReportRecord;
 import entity.MaterialRecord;
 import entity.Report;
+import entity.SimpleAmountCheckReportRecord;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.FileOutputStream;
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -29,6 +29,14 @@ public class XlsxReportWriter implements ReportWriter {
             "Кол. из КС-ок"
     );
 
+    private final static List<String> SIMPLE_AMOUNT_CHECK_REPORT_RECORD_HEADERS = Arrays.asList(
+            "#",
+            "Наименование",
+            "Количество по ОДМ",
+            "Количество по КС",
+            "Разница"
+    );
+
     @Override
     public String createAndSaveReport(Report report) {
         String fileName = generateFilename();
@@ -36,14 +44,24 @@ public class XlsxReportWriter implements ReportWriter {
                 FileOutputStream fileOutputStream = new FileOutputStream(fileName);
                 Workbook workbook = new XSSFWorkbook()
         ) {
+            writeSimpleAmountCheckReportRecords(
+                    workbook.createSheet("Простая проверка"),
+                    report.getSimpleAmountCheckRecords()
+            );
             writeAmountCheckReportRecords(workbook.createSheet("Проверка"), report.getAmountCheckRecords());
-            writeMaterialRecords(workbook.createSheet("Записи из ОДМ"), report.getTotalMaterialRexords());
+            writeMaterialRecords(workbook.createSheet("Записи из ОДМ"), report.getTotalMaterialRecords());
             writeMaterialRecords(workbook.createSheet("Записи из КС-ок"), report.getWorkMaterialRecords());
             workbook.write(fileOutputStream);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
         return fileName;
+    }
+
+    private void writeSimpleAmountCheckReportRecords(Sheet sheet, List<SimpleAmountCheckReportRecord> records) {
+        writeHeaders(sheet.createRow(0), SIMPLE_AMOUNT_CHECK_REPORT_RECORD_HEADERS);
+        IntStream.rangeClosed(1, records.size())
+                .forEach(rowN -> writeSimpleAmountCheckReportRecord(sheet.createRow(rowN), records.get(rowN - 1)));
     }
 
     private void writeMaterialRecords(Sheet sheet, List<MaterialRecord> materialRecords) {
@@ -81,6 +99,15 @@ public class XlsxReportWriter implements ReportWriter {
         row.createCell(4, CellType.STRING).setCellValue(record.getTableConfig().getTablePath().getFileName().toString());
         row.createCell(5, CellType.STRING).setCellValue(record.getTableConfig().getSheetName());
         row.createCell(6, CellType.NUMERIC).setCellValue(record.getRowNumber() + 1);
+    }
+
+    private void writeSimpleAmountCheckReportRecord(Row row, SimpleAmountCheckReportRecord record) {
+        row.createCell(0, CellType.NUMERIC).setCellValue(record.getTotalReportRowNumber());
+        row.createCell(1, CellType.STRING).setCellValue(record.getName());
+        row.createCell(2, CellType.NUMERIC).setCellValue(record.getTotalReportAmount());
+        row.createCell(3, CellType.NUMERIC).setCellValue(record.getWorkReportAmount());
+        double diff = record.getTotalReportAmount() - record.getWorkReportAmount();
+        row.createCell(4, CellType.NUMERIC).setCellValue(diff);
     }
 
     private String generateFilename() {
