@@ -1,7 +1,12 @@
 package service.ui.gui;
 
+import entity.ColumnsConfig;
+import entity.TableConfig;
+
 import javax.swing.*;
 import java.awt.*;
+import java.nio.file.Path;
+import java.util.Optional;
 
 public class TableChooserPanel extends CustomFontJPanel {
     private final JLabel chooseFileJLabel;
@@ -51,6 +56,38 @@ public class TableChooserPanel extends CustomFontJPanel {
         add(okJButton);
     }
 
+    public TableChooserPanel(TableConfig defaultValues) {
+        this();
+        Optional<TableConfig> tableConfig = Optional.of(defaultValues);
+        tableConfig
+                .map(TableConfig::getTablePath)
+                .map(Path::getFileName)
+                .map(Path::toString)
+                .ifPresent(chooseFileJButton::setText);
+        tableConfig
+                .map(TableConfig::getSheetName)
+                .ifPresent(enterSheetJTextField::setText);
+        tableConfig
+                .map(TableConfig::getDelimiter)
+                .ifPresent(enterDelimiterJTextField::setText);
+        Optional<ColumnsConfig> columnsConfig = tableConfig.map(TableConfig::getColumnsConfig);
+        columnsConfig
+                .map(ColumnsConfig::getNameColumnNumber)
+                .map(v -> v + 1)
+                .map(String::valueOf)
+                .ifPresent(enterNameColumnNumberJTextField::setText);
+        columnsConfig
+                .map(ColumnsConfig::getMeasureColumnNumber)
+                .map(v -> v + 1)
+                .map(String::valueOf)
+                .ifPresent(enterMeasureColumnNumberJTextField::setText);
+        columnsConfig
+                .map(ColumnsConfig::getAmountColumnNumber)
+                .map(v -> v + 1)
+                .map(String::valueOf)
+                .ifPresent(enterAmountColumnNumberJTextField::setText);
+    }
+
     public void showErrorMessage(String message) {
         errorsJLabel.setText("<html><font color='red'>" + message + "</font></html>");
     }
@@ -65,12 +102,6 @@ public class TableChooserPanel extends CustomFontJPanel {
 
     public JButton getOkJButton() {
         return okJButton;
-    }
-
-    @Override
-    public Component add(Component comp){
-        comp.setFont(new Font("Arial", Font.PLAIN, 20));
-        return super.add(comp);
     }
 
     public String getSheetName() {

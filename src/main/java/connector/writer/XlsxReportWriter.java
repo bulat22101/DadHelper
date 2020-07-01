@@ -102,7 +102,7 @@ public class XlsxReportWriter implements ReportWriter {
     }
 
     private void writeSimpleAmountCheckReportRecord(Row row, SimpleAmountCheckReportRecord record) {
-        row.createCell(0, CellType.NUMERIC).setCellValue(record.getTotalReportRowNumber());
+        row.createCell(0, CellType.NUMERIC).setCellValue(record.getTotalReportRowNumber() + 1);
         row.createCell(1, CellType.STRING).setCellValue(record.getName());
         row.createCell(2, CellType.NUMERIC).setCellValue(record.getTotalReportAmount());
         row.createCell(3, CellType.NUMERIC).setCellValue(record.getWorkReportAmount());

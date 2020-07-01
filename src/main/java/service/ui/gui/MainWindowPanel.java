@@ -4,33 +4,35 @@ import javax.swing.*;
 import java.awt.*;
 
 public class MainWindowPanel extends CustomFontJPanel {
-    private final JLabel totalAreaDescriptionJLabel;
-    private final JLabel workAreaDescriptionJLabel;
+    private static final String DEFAULT_WORK_TABLES_COMBOBOX_ITEM = "ОТЧЕТЫ КС";
     private final JLabel totalTableJLabel;
     private final JComboBox<String> workTablesJComboBox;
     private final JButton addTotalJButton;
     private final JButton addWorkJButton;
+    private final JButton deleteWorkJButton;
+    private final JButton editWorkJButton;
     private final JButton createReportJButton;
     private final JLabel errorsJLabel;
 
     public MainWindowPanel() {
-        totalAreaDescriptionJLabel = new JLabel("ОДМ");
-        workAreaDescriptionJLabel = new JLabel("ОТЧЕТЫ КС");
-        totalTableJLabel = new JLabel("ФАЙЛ ОДМ НЕ ВЫБРАН");
-        workTablesJComboBox = new JComboBox<>();
-        addTotalJButton = new JButton("ВЫБРАТЬ");
-        addWorkJButton = new JButton("ДОБАВИТЬ");
-        createReportJButton = new JButton("ПОЛУЧИТЬ ОТЧЕТ");
-        errorsJLabel = new JLabel();
-        setLayout(new GridLayout(3, 3));
-        add(totalAreaDescriptionJLabel);
-        add(addTotalJButton);
+        this.totalTableJLabel = new JLabel("ФАЙЛ ОДМ НЕ ВЫБРАН");
+        this.workTablesJComboBox = new JComboBox<>();
+        this.workTablesJComboBox.addItem(DEFAULT_WORK_TABLES_COMBOBOX_ITEM);
+        this.addTotalJButton = new JButton("ВЫБРАТЬ");
+        this.addWorkJButton = new JButton("ДОБАВИТЬ");
+        this.deleteWorkJButton = new JButton("УДАЛИТЬ");
+        this.editWorkJButton = new JButton("ИЗМЕНИТЬ");
+        this.createReportJButton = new JButton("ПОЛУЧИТЬ ОТЧЕТ");
+        this.errorsJLabel = new JLabel();
+        setLayout(new GridLayout(4, 2));
         add(totalTableJLabel);
-        add(workAreaDescriptionJLabel);
-        add(addWorkJButton);
+        add(addTotalJButton);
         add(workTablesJComboBox);
-        add(createReportJButton);
+        add(addWorkJButton);
+        add(editWorkJButton);
+        add(deleteWorkJButton);
         add(errorsJLabel);
+        add(createReportJButton);
     }
 
     public void showErrorMessage(String message) {
@@ -51,6 +53,18 @@ public class MainWindowPanel extends CustomFontJPanel {
 
     public JButton getCreateReportJButton() {
         return createReportJButton;
+    }
+
+    public JButton getDeleteWorkJButton() {
+        return deleteWorkJButton;
+    }
+
+    public JButton getEditWorkJButton() {
+        return editWorkJButton;
+    }
+
+    public JComboBox<String> getWorkTablesJComboBox() {
+        return workTablesJComboBox;
     }
 
     public void changeTotalTableName(String totalTableName) {

@@ -15,8 +15,8 @@ public class MainWindow extends JFrame implements TableRequester {
     private static final String WORK_TABLE = "WORK_TABLE";
     private final SearchProcessor searchProcessor;
     private final MainWindowPanel panel;
-    private TableConfig totalTableConfig;
     private final List<TableConfig> workTables;
+    private TableConfig totalTableConfig;
 
     public MainWindow(SearchProcessor searchProcessor) {
         this.searchProcessor = searchProcessor;
@@ -33,7 +33,11 @@ public class MainWindow extends JFrame implements TableRequester {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 panel.clearError();
-                new TableChooser(TOTAL_TABLE, MainWindow.this);
+                if (totalTableConfig == null) {
+                    new TableChooser(TOTAL_TABLE, MainWindow.this);
+                } else {
+                    new TableChooser(TOTAL_TABLE, MainWindow.this, totalTableConfig);
+                }
             }
         });
         panel.getAddWorkJButton().addActionListener(new AbstractAction() {
@@ -41,6 +45,23 @@ public class MainWindow extends JFrame implements TableRequester {
             public void actionPerformed(ActionEvent actionEvent) {
                 panel.clearError();
                 new TableChooser(WORK_TABLE, MainWindow.this);
+            }
+        });
+        panel.getDeleteWorkJButton().addActionListener(new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                panel.clearError();
+                removeSelectedWorkTable();
+            }
+        });
+        panel.getEditWorkJButton().addActionListener(new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                panel.clearError();
+                TableConfig selectedTableConfig = removeSelectedWorkTable();
+                if (selectedTableConfig != null) {
+                    new TableChooser(WORK_TABLE, MainWindow.this, selectedTableConfig);
+                }
             }
         });
         setTitle("Поиск");
@@ -54,10 +75,22 @@ public class MainWindow extends JFrame implements TableRequester {
         if (TOTAL_TABLE.equals(key)) {
             totalTableConfig = tableConfig;
             panel.changeTotalTableName(tableConfig.getTablePath().getFileName().toString());
+            panel.getAddTotalJButton().setText("ИЗМЕНИТЬ");
         }
         if (WORK_TABLE.equals(key)) {
             workTables.add(tableConfig);
             panel.addWorkTableName(tableConfig.getTablePath().getFileName().toString());
+        }
+    }
+
+    private TableConfig removeSelectedWorkTable() {
+        int selectedIndex = panel.getWorkTablesJComboBox().getSelectedIndex();
+        if (selectedIndex > 0) {
+            panel.getWorkTablesJComboBox().removeItemAt(selectedIndex);
+            panel.getWorkTablesJComboBox().setSelectedIndex(0);
+            return workTables.remove(selectedIndex - 1);
+        } else {
+            return null;
         }
     }
 
