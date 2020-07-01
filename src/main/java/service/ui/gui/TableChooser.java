@@ -15,21 +15,19 @@ public class TableChooser extends JFrame {
     private final TableChooserPanel panel;
     private Path filePath;
 
-    public TableChooser(String tableRequesterKey, TableRequester tableRequester) {
+    private TableChooser(String tableRequesterKey, TableRequester tableRequester, TableChooserPanel panel, Path filePath) {
         this.tableRequesterKey = tableRequesterKey;
         this.tableRequester = tableRequester;
-        this.panel = new TableChooserPanel();
+        this.panel = panel;
+        this.filePath = filePath;
         panel.getChooseFileJButton().addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                panel.clearError();
+                TableChooser.this.panel.clearError();
                 getFile();
-                if (filePath != null) {
-                    panel.getChooseFileJButton().setText(filePath.getFileName().toString());
-                }
             }
         });
-        panel.getOkJButton().addActionListener(new AbstractAction() {
+        this.panel.getOkJButton().addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 sendTableConfigAndExit();
@@ -37,9 +35,17 @@ public class TableChooser extends JFrame {
         });
         getContentPane().add(panel);
         setTitle("Таблица");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         pack();
         setVisible(true);
+    }
+
+    public TableChooser(String tableRequesterKey, TableRequester tableRequester) {
+        this(tableRequesterKey, tableRequester, new TableChooserPanel(), null);
+    }
+
+    public TableChooser(String tableRequesterKey, TableRequester tableRequester, TableConfig defaultConfig) {
+        this(tableRequesterKey, tableRequester, new TableChooserPanel(defaultConfig), defaultConfig.getTablePath());
     }
 
     private void sendTableConfigAndExit() {
@@ -66,11 +72,11 @@ public class TableChooser extends JFrame {
             return;
         }
         int nameColumnNumber, measureColumnNumber, amountColumnNumber;
-        try{
+        try {
             nameColumnNumber = Integer.parseInt(panel.getNameColumnNumber()) - 1;
             measureColumnNumber = Integer.parseInt(panel.getMeasureColumnNumber()) - 1;
             amountColumnNumber = Integer.parseInt(panel.getAmountColumnNumber()) - 1;
-        }catch (Exception e){
+        } catch (Exception e) {
             panel.showErrorMessage("Введите корректные номера столбцов!");
             return;
         }
@@ -87,6 +93,7 @@ public class TableChooser extends JFrame {
         fileChooser.setFileFilter(new FileNameExtensionFilter("Таблицы", "csv", "xlsx"));
         if (fileChooser.showDialog(panel, "Выбрать") == JFileChooser.APPROVE_OPTION) {
             this.filePath = fileChooser.getSelectedFile().toPath();
+            this.panel.getChooseFileJButton().setText(this.filePath.getFileName().toString());
         }
     }
 }
